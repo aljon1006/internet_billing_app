@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CableSys - View Client</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script th:if="${downloadReceipt}" th:inline="javascript">
+        window.onload = function() {
+            const custId = /*[[${targetCustId}]]*/ 0; 
+            const billId = /*[[${targetBillId}]]*/ 0; 
+
+            if (custId && custId !== 0) {
+                alert("Payment Successful! Downloading receipt for Customer #" + custId);
+                setTimeout(function() {
+                    window.location.href = '/customer/receipt/download/' + custId + '/'+ billId;
+                }, 500);
+            }
+        };
+    </script>
+</head>
+
+<body class="d-flex">
+    
+    <div th:replace="~{fragments/sidebar :: sidebar('customer')}"></div>
+
+    <div class="main-content d-flex flex-column">
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom p-3">
+            <div class="container-fluid">
+                <h5 class="mb-0">Client Management / <span class="text-muted" th:text="${client.firstName} + ' ' + ${client.lastName}"></span></h5>
+                <a th:href="@{/dashboard}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </nav>
+
+        <div class="container-fluid p-4">
+            <div class="row g-4">
+                <div class="col-md-5">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold mb-4">Manual Settlement</h5>
+                            <form th:action="@{/customers/pay}" method="post">
+                                <input type="hidden" name="custId" th:value="${client.custId}">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label text-muted small">Amount to Collect (PHP)</label>
+                                    <input type="number" class="form-control fw-bold text-primary fs-5" 
+                                           th:value="${client.price}" disabled>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small">Collection Date</label>
+                                    <input type="date" class="form-control" 
+                                           th:value="${#temporals.format(#temporals.createToday(), 'yyyy-MM-dd')}" readonly> 
+                                </div>
+
+                                <button type="submit" 
+                                        class="btn btn-outline-success w-100 py-2 fw-bold"
+                                        th:disabled="${client.dueDate != null && client.dueDate.isAfter(#temporals.createToday())}">
+                                    <i class="bi bi-check-circle-fill me-2"></i> Confirm Payment
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-7">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title fw-bold mb-4">Client Information</h5>
+                            <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
+                                <span class="text-muted">Full Name</span>
+                                <span class="fw-bold fs-5" th:text="${client.firstName} + ' ' + ${client.lastName}"></span>
+                            </div>
+                            <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
+                                <span class="text-muted">Address</span>
+                                <span th:text="|#${client.houseNumber} ${client.street}, ${address.barangay}, ${address.municipality}, ${address.province}|"></span>
+                            </div>
+                            <div class="d-flex justify-content-between border-bottom pb-3 mb-3">
+                                <span class="text-muted">Service Plan</span>
+                                <span class="badge bg-info-subtle text-info rounded-pill px-3" th:text="${client.speed}"></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Next Due Date</span>
+                                <span class="fw-bold" 
+                                      th:classappend="${client.dueDate != null and client.dueDate.isBefore(#temporals.createToday())} ? 'text-danger' : 'text-dark'"
+                                      th:text="${#temporals.format(client.dueDate, 'MMM dd, yyyy')}">
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <form th:action="@{/customers/deactivate}" method="post">
+                                    <input type="hidden" name="custId" th:value="${client.custId}">
+                                    <button type="submit" 
+                                            class="btn btn-outline-danger px-4 py-2 fw-semibold btn-sm"
+                                            th:disabled="${client.dueDate != null && client.dueDate.isAfter(#temporals.createToday())}">
+                                        <i class="bi bi-person-x-fill me-1"></i> Deactivate
+                                    </button>
+                                </form>
+                                
+                                <button type="button" 
+                                        class="btn btn-outline-primary px-4 py-2 fw-semibold btn-sm mx-2 shadow-sm"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#upgradePlanModal">
+                                    <i class="bi bi-pencil-square me-1"></i> Change Plan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="upgradePlanModal" tabindex="-1" aria-labelledby="upgradePlanModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-header border-bottom-0 pb-0">
+                            <h5 class="modal-title fw-bold" id="upgradePlanModalLabel">Update Plan</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form th:action="@{/customers/edit_upgrade}" method="POST">
+                                
+                                <input type="hidden" name="custId" th:value="${client.custId}">
+
+                                <div class="mb-4">
+                                    <label class="form-label text-muted small fw-bold">Internet Plan</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-0"><i class="bi bi-wifi"></i></span>
+                                        <select name="planId" class="form-select bg-light border-0">
+                                            <option th:each="p : ${plans}" th:value="${p.planId}" th:text="${p.speed + ' - ₱' + p.price}"></option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top-0 px-0 pb-0">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-success px-4 shadow-sm">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Define the fragment name here -->
+    <div th:fragment="sidebar(activePage)" id="sidebar" class="p-3 text-white">
+        <h4 class="mb-4 text-primary fw-bold">CableSys</h4>
+        <ul class="nav flex-column">
+            <!-- Use the activePage parameter to highlight the current link -->
+            <li class="nav-item mb-2">
+                <a th:href="@{/dashboard}" 
+                   class="nav-link" 
+                   th:classappend="${activePage == 'dashboard'} ? 'active fw-bold' : ''">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a
+                   class="nav-link" 
+                   th:classappend="${activePage == 'customer'} ? 'active fw-bold' : ''">
+                    <i class="bi bi-people me-2"></i> Customer
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a th:href="@{/billing}" class="nav-link" 
+                   th:classappend="${activePage == 'billing'} ? 'active fw-bold' : ''">
+                    <i class="bi bi-receipt me-2"></i> Billing
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a href="#" class="nav-link" 
+                   th:classappend="${activePage == 'reports'} ? 'active fw-bold' : ''">
+                    <i class="bi bi-graph-up me-2"></i> Reports
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a th:href="@{/settings}" class="nav-link" th:classappend="${active == 'settings'} ? 'active' : ''">
+                    <i class="bi bi-gear-fill me-2"></i> Settings
+                </a>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>

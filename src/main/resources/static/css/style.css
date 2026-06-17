@@ -1,0 +1,5 @@
+
+#sidebar { min-width: 250px; max-width: 250px; min-height: 100vh; background-color: #212529; }
+.nav-link { color: #adb5bd; }
+.nav-link:hover, .nav-link.active { color: #fff; background-color: rgba(255,255,255,0.1); }
+.main-content { background-color: #f8f9fa; width: 100%; }
